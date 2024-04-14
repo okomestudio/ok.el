@@ -36,7 +36,6 @@ https://emacs.stackexchange.com/a/38511/599."
 
 (defun ok-execution-time (name &rest body)
   "Measure execution time of BODY named NAME."
-  (message "IN EXECUTION TIME")
   (let ((t0 (float-time)))
     (unwind-protect
         (progn body)
