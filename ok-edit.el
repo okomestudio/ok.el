@@ -1,5 +1,8 @@
 ;;; ok-edit.el --- Okome Studio edit utilities  -*- lexical-binding: t -*-
 ;;; Commentary:
+;;
+;; This module offers document editing utilities.
+;;
 ;;; Code:
 
 (defun ok-edit-fill-or-unfill-paragraph (&optional region)
