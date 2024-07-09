@@ -17,10 +17,10 @@
 (defun ok-edit-insert-newline-above ()
   "Insert a new line above current point."
   (interactive)
-  (back-to-indentation)
-  (newline-and-indent)
-  (forward-line -1)
-  (indent-according-to-mode))
+  (save-excursion
+    (back-to-indentation)
+    (newline-and-indent) ;; do we need `indent-accoring-to-mode'?
+    ))
 
 (defun ok-edit-insert-newline-below ()
   "Insert a new line below current point."
