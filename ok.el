@@ -41,5 +41,22 @@ https://emacs.stackexchange.com/a/38511/599."
         (progn body)
       (message "%s ran in %f" name (- (float-time) t0)))))
 
+(defmacro ok-safe-local-variable-add (&rest pairs)
+  "Add variable-function PAIRS to `safe-local-variable'."
+  (unless (zerop (mod (length pairs) 2))
+    (error "PAIRS must have an even number of variable-value pairs"))
+  (let ((expr nil))
+    (while pairs
+      (unless (symbolp (car pairs))
+        (error "Not a symbol: %s" (car pairs)))
+      (setq expr
+            (cons (list 'put
+                        (list 'quote (car pairs))
+                        (list 'quote 'safe-local-variable)
+                        (list 'function (car (cdr pairs))))
+                  expr))
+      (setq pairs (cdr (cdr pairs))))
+    (macroexp-progn (nreverse expr))))
+
 (provide 'ok)
 ;;; ok.el ends here
