@@ -1,9 +1,22 @@
 ;;; ok-edit.el --- Okome Studio edit utilities  -*- lexical-binding: t -*-
 ;;; Commentary:
 ;;
-;; This module offers document editing utilities.
+;; The `ok-edit' module provides document editing utilities.
 ;;
 ;;; Code:
+
+(defun ok-edit-align-comments (beg end arg)
+  "Align comment lines within marked region.
+
+The marked region starts from BEG and ends at END.
+
+When given, the prefix argument ARG will be taken as the number
+of spaces before the comment start character. The default is two
+spaces."
+  (interactive "*r\nP")
+  (let ((spacing (if arg arg 2))
+        (regexp (concat "\\(\\s-*\\)" (regexp-quote comment-start))))
+    (align-regexp beg end regexp nil spacing)))
 
 (defun ok-edit-fill-or-unfill-paragraph (&optional region)
   "Fill or unfill a paragraph in REGION."
