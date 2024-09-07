@@ -2,6 +2,8 @@
 ;;; Commentary:
 ;;; Code:
 
+(require 'ok-font)
+
 (defun ok-face-color-scale (color factor)
   "Scale RGB COLOR lighter or darker by a numeric FACTOR.
 FACTOR is between 0.0 to 2.0, where 1.0 means unchanged.
@@ -30,17 +32,6 @@ Example:
                                          (* x factor)
                                        (+ x (* (- 1.0 x) (- factor 1.0))))))))))))
     (format "#%X" result)))
-
-(defun ok-face-font-installed-p (font-name)
-  "Check if font named FONT-NAME is installed."
-  ;; Another function, x-list-fonts, could also be used.
-  (find-font (font-spec :name font-name)))
-
-(defun ok-face-font-with-family-exists-p (font-family)
-  "Return t if font with FONT-FAMILY exists or nil if not."
-  (if (find-font (font-spec :family font-family))
-      t
-    (message "WARNING: Font `%s' not found" font)))
 
 (defun ok-face-text-scale-mode-height ()
   "Get the default face height if `text-scale-mode' is active."
@@ -82,13 +73,13 @@ When the subsets are given, they are used to set the language
 subsets to the corresponding font-family."
   (let ((frame (plist-get kwargs :frame))
         (subsets (plist-get kwargs :subsets)))
-    (ok-face-font-with-family-exists-p font-family)
+    (ok-font-family-exists-p font-family)
     (create-fontset-from-fontset-spec
      (font-xlfd-name (font-spec :family font-family :registry fontset)))
     (dolist (subset subsets)
       (let ((lang (car subset))
             (font-family (car (cdr subset))))
-        (and (ok-face-font-with-family-exists-p font-family)
+        (and (ok-font-family-exists-p font-family)
              (ok-face-set-fontset-font fontset lang font-family frame))))))
 
 (provide 'ok-face)
