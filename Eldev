@@ -1,0 +1,4 @@
+;; -*- mode: emacs-lisp; lexical-binding: t; no-byte-compile: t -*-
+
+;; explicitly set main file
+(setf eldev-project-main-file "ok.el")
