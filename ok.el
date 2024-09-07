@@ -1,4 +1,7 @@
 ;;; ok.el --- Okome Studio utilities  -*- lexical-binding: t -*-
+;;
+;; Version: 0.1
+;;
 ;;; Commentary:
 ;;
 ;; Okome Studio utilities.

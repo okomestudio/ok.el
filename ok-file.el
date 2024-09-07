@@ -16,19 +16,17 @@ detail."
    (concat "https://raw.githubusercontent.com/" src) dest))
 
 (defun ok-file-ensure-from-url (src &optional dest)
-  "Ensure that file at URL gets downloaded and exists.
-SRC is the source URL, DEST is the local destination path for the
-downloaded file. If DEST is not given, the filename is inferred
-from the source path. If DEST is not an absolute path, the file
-will be created in the my-lipdir directory."
-  (let ((dest (if dest
-                  (if (string-prefix-p "/" dest)
-                      dest
-                    (concat (file-name-as-directory ts/site-lisp-dir) dest))
-                (concat (file-name-as-directory ts/site-lisp-dir)
-                        (file-name-nondirectory src)))))
-    (if (not (file-exists-p dest))
-        (url-copy-file src dest))))
+  "Download file from SRC and save as the local file DEST.
+SRC is the source URL. If DEST is not given, the filename is
+inferred from the URL and used as DEST. Non-absolute DEST will be
+resolved relative to `default-directory'."
+  (let* ((filename (file-name-nondirectory src))
+         (dest (if (and dest (file-name-absolute-p dest))
+                   dest
+                 (expand-file-name (or dest filename)))))
+    (when (not (file-exists-p dest))
+      (url-copy-file src dest)
+      dest)))
 
 (defun ok-file-locate-dominating-files (file name)
   "Look upward from FIL in directory hierarchy to locate files named NAME.
