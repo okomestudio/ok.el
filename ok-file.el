@@ -17,13 +17,20 @@ detail."
 
 (defun ok-file-ensure-from-url (src &optional dest)
   "Download file from SRC and save as the local file DEST.
+
 SRC is the source URL. If DEST is not given, the filename is
-inferred from the URL and used as DEST. Non-absolute DEST will be
-resolved relative to `default-directory'."
+inferred from the URL and used as relative DEST. Relative DEST
+will be resolved relative to `default-directory'. If DEST points
+to an existing directory, a file will be created with the same
+name as in SRC.
+
+When a new file is created, the function returns the path to it."
   (let* ((filename (file-name-nondirectory src))
          (dest (if (and dest (file-name-absolute-p dest))
                    dest
                  (expand-file-name (or dest filename)))))
+    (when (file-directory-p dest)
+      (setq dest (file-name-concat dest filename)))
     (when (not (file-exists-p dest))
       (url-copy-file src dest)
       dest)))

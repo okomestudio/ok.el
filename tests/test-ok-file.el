@@ -15,7 +15,14 @@
     (setq dest-abs (expand-file-name dest))
     (setq dest-generated (expand-file-name (file-name-nondirectory src)))
     (setq dest-pre-existing "/dev/null")
+    (setq dest-dir-existing (make-temp-file "ok-file-" t))
+    (setq dest-dir-existing-generated
+          (expand-file-name (file-name-nondirectory src)
+                            dest-dir-existing))
     (spy-on 'url-copy-file))
+
+  (after-each
+    (delete-directory dest-dir-existing))
 
   (it "skips if `dest' already exists"
     (expect (ok-file-ensure-from-url src dest-pre-existing) :to-equal nil)
@@ -31,4 +38,10 @@
 
   (it "uses `src' filename as `dest' when not supplied"
     (expect (ok-file-ensure-from-url src) :to-equal dest-generated)
-    (expect 'url-copy-file :to-have-been-called-with src dest-generated)))
+    (expect 'url-copy-file :to-have-been-called-with src dest-generated))
+
+  (it "adds `src' filename to `dest' pointing to an existing directory"
+    (expect (ok-file-ensure-from-url src dest-dir-existing)
+            :to-equal dest-dir-existing-generated)
+    (expect 'url-copy-file
+            :to-have-been-called-with src dest-dir-existing-generated)))
