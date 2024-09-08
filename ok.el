@@ -11,6 +11,7 @@
 (require 'ok-buffer)
 (require 'ok-edit)
 (require 'ok-face)
+(require 'ok-font)
 (require 'ok-file)
 (require 'ok-prompt)
 (require 'ok-sys)
