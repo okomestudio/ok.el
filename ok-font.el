@@ -33,5 +33,50 @@ it."
   "Update font cache."
   (async-shell-command "fc-cache -f -v"))
 
+;;; FONTSET
+
+(defvar ok-fontset-lang-charsets
+  '((ja japanese-jisx0208
+        japanese-jisx0208-1978
+        japanese-jisx0212
+        japanese-jisx0213-1
+        japanese-jisx0213-2
+        japanese-jisx0213-a
+        japanese-jisx0213.2004-1
+        jisx0201
+        latin-jisx0201
+        katakana-jisx0201
+        katakana-sjis))
+  "Mapping of language code to the language charsets.")
+
+(defun ok-fontset-set-font (fontset lang font-family &optional frame)
+  "Set a LANG subset of FONTSET to FONT-FAMILY.
+This is used to create a fontset with its subset filled with
+another fontset from a different language."
+  (let ((charsets (cdr (assoc lang ok-fontset-lang-charsets))))
+    (dolist (charset charsets)
+      (set-fontset-font fontset charset (font-spec :family font-family) frame))))
+
+(defun ok-fontset-create (fontset font-family &rest kwargs)
+  "Create FONTSET using FONT-FAMILY.
+
+KWARGS take the following arguments:
+
+:frame - The frame with which the fontset is associated.
+:subsets - A list of (language font-family) pair.
+
+When the subsets are given, they are used to set the language
+subsets to the corresponding font-family."
+  (let ((frame (plist-get kwargs :frame))
+        (subsets (plist-get kwargs :subsets)))
+    (ok-font-family-exists-p font-family)
+    (create-fontset-from-fontset-spec
+     (font-xlfd-name (font-spec :family font-family :registry fontset)))
+    (dolist (subset subsets)
+      (let ((lang (car subset))
+            (font-family (car (cdr subset))))
+        (and (ok-font-family-exists-p font-family)
+             (ok-fontset-set-font fontset lang font-family frame))))))
+
 (provide 'ok-font)
 ;;; ok-font.el ends here
