@@ -34,7 +34,7 @@ Example:
 (defun ok-face-text-scale-mode-height ()
   "Get the default face height if `text-scale-mode' is active."
   (when (bound-and-true-p text-scale-mode)
-    (car (cdr (assoc :height (cdr (assoc 'default face-remapping-alist)))))))
+    (cadr (assoc :height (cdr (assoc 'default face-remapping-alist))))))
 
 (provide 'ok-face)
 ;;; ok-face.el ends here
