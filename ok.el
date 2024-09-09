@@ -9,6 +9,7 @@
 ;;; Code:
 
 (require 'ok-buffer)
+(require 'ok-datetime)
 (require 'ok-edit)
 (require 'ok-face)
 (require 'ok-font)
