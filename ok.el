@@ -45,7 +45,10 @@ https://emacs.stackexchange.com/a/38511/599."
         (goto-char (point-max))
         (if (not (bolp))
             (newline))
-        (insert (format-time-string "%FT%H:%M:%S.%3N" (current-time)) " ")))))
+        (insert (format-time-string "%FT%H:%M:%S.%3N" (current-time)) " "
+                ;; NOTE: Temporarily added to find the source of empty
+                ;; lines in *Message* buffer
+                (if ok-debug (format "[\"%s\" %s] " format-string `(,args)) ""))))))
 
 (advice-add 'message :before 'ok-prepend-timestamp)
 
