@@ -1,6 +1,6 @@
 # ok.el
 
-Emacs utilities for Okome Studio.
+Emacs Lisp utilities for Okome Studio.
 
 ### Development
 
