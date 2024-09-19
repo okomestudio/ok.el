@@ -18,6 +18,16 @@
 (require 'ok-sys)
 (require 'ok-web)
 
+(defgroup ok nil
+  "Okome Studio utility group."
+  :prefix "ok-"
+  :group 'development)
+
+(defcustom ok-debug nil
+  "Global flag for debugging.
+Set to non-nil to be in debug mode. Set to nil to non-debug mode."
+  :group 'ok)
+
 (defun ok-debug-message (text)
   "Print a debug message TEXT with timestamp."
   (message "%s %s"
