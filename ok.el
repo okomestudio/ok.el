@@ -36,6 +36,7 @@
 (require 'ok-font)
 (require 'ok-file)
 (require 'ok-prompt)
+(require 'ok-string)
 (require 'ok-sys)
 (require 'ok-web)
 
