@@ -53,7 +53,7 @@ character (defaults to 2)."
         (setq sub (concat sub c)))
       (setq i (1+ i))
       (setq j (if (multibyte-string-p c)
-                  (+ (* 2 mb-scale) j)
+                  (+ (* scale) j)
                 (1+ j))))
     sub))
 
