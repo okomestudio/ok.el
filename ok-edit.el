@@ -62,6 +62,11 @@ spaces."
   (end-of-line)
   (newline-and-indent))
 
+(defun ok-edit-insert-section-delimiter ()
+  "Insert a section delimiter character (❬)."
+  (interactive)
+  (insert-char ?❬))
+
 (defun ok-edit-insert-zero-width-space ()
   "Insert a zero width space character at point."
   (interactive)
