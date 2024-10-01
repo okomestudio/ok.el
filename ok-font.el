@@ -67,13 +67,13 @@ it."
         katakana-sjis))
   "Mapping of language code to the language charsets.")
 
-(defun ok-fontset-set-font (fontset lang font-family &optional frame)
-  "Set a LANG subset of FONTSET to FONT-FAMILY.
+(defun ok-fontset-set-font (fontset lang font-spec &optional frame)
+  "Set a LANG subset of FONTSET to FONT-SPEC.
 This is used to create a fontset with its subset filled with
 another fontset from a different language."
   (let ((charsets (cdr (assoc lang ok-fontset-lang-charsets))))
     (dolist (charset charsets)
-      (set-fontset-font fontset charset (font-spec :family font-family) frame))))
+      (set-fontset-font fontset charset font-spec frame))))
 
 (defun ok-fontset-create (fontset font-family &rest kwargs)
   "Create FONTSET using FONT-FAMILY.
@@ -81,10 +81,10 @@ another fontset from a different language."
 KWARGS take the following arguments:
 
 :frame - The frame with which the fontset is associated.
-:subsets - A list of (language font-family) pair.
+:subsets - A list of (language font-spec) pair.
 
 When the subsets are given, they are used to set the language
-subsets to the corresponding font-family."
+subsets to the corresponding font-spec."
   (let ((frame (plist-get kwargs :frame))
         (subsets (plist-get kwargs :subsets)))
     (ok-font-family-exists-p font-family)
@@ -92,9 +92,8 @@ subsets to the corresponding font-family."
      (font-xlfd-name (font-spec :family font-family :registry fontset)))
     (dolist (subset subsets)
       (let ((lang (car subset))
-            (font-family (car (cdr subset))))
-        (and (ok-font-family-exists-p font-family)
-             (ok-fontset-set-font fontset lang font-family frame))))))
+            (font-spec (cadr subset)))
+        (ok-fontset-set-font fontset lang font-spec frame)))))
 
 (provide 'ok-font)
 ;;; ok-font.el ends here
