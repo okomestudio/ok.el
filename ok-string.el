@@ -23,6 +23,22 @@
 ;;
 ;;; Code:
 
+(defun ok-string-format (s &optional alist)
+  "The `format' function with named fields.
+The string S is the format control string. See the documentation
+for `format'. ALIST is an association list with mapping from the
+field name to the field value."
+  (let ((start 0) arglist field-name spec val)
+    (while-let ((start (string-match
+                        "%\\(([A-Za-z-]+)\\)-?[0-9]\\{0,\\}\\([cdefgosSxX]\\)"
+                        s start)))
+      (setq field-name (substring (match-string 1 s) 1 -1))
+      (setq spec (match-string 2 s))
+      (setq val (alist-get (intern field-name) alist))
+      (setq arglist (append arglist `(,val)))
+      (setq s (replace-match (concat "%" spec) nil nil s)))
+    (apply #'format `(,s ,@arglist))))
+
 (defun ok-string-multibyte-string-width (s &optional scale)
   "Get multibyte (column) width of string S.
 SCALE is the default column width for a multibyte
