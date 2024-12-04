@@ -60,17 +60,18 @@ Set to non-nil to be in debug mode. Set to nil to non-debug mode."
   "Prepend timestamp to `message' output.
 FORMAT-STRING and ARGS are passed through. See
 https://emacs.stackexchange.com/a/38511/599."
-  (unless (string-equal format-string "%s%s")
-    (let ((deactivate-mark nil)
-          (inhibit-read-only t))
-      (with-current-buffer "*Messages*"
-        (goto-char (point-max))
-        (if (not (bolp))
-            (newline))
-        (insert (format-time-string "%FT%H:%M:%S.%3N" (current-time)) " "
-                ;; NOTE: Temporarily added to find the source of empty
-                ;; lines in *Message* buffer
-                (if ok-debug (format "[\"%s\" %s] " format-string `(,args)) ""))))))
+  ;; If `message-log-max' is nil, message logging is disabled
+  (if message-log-max
+      (let ((deactivate-mark nil)
+            (inhibit-read-only t))
+        (with-current-buffer "*Messages*"
+          (goto-char (point-max))
+          (if (not (bolp))
+              (newline))
+          (insert (format-time-string "%FT%H:%M:%S.%3N" (current-time)) " "
+                  ;; NOTE: Temporarily added to find the source of empty
+                  ;; lines in *Message* buffer
+                  (if ok-debug (format "[\"%s\" %s] " format-string `(,args)) ""))))))
 
 (advice-add 'message :before 'ok-prepend-timestamp)
 
