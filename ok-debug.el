@@ -31,10 +31,12 @@ Set to non-nil to be in debug mode. Set to nil to non-debug mode."
 (defun ok-debug-ad-function-beg-end (old-fun &rest _)
   "Advice OLD-FUN to message at the beginning and end of execution."
   (let ((old-fun-sym (nth 2 (nth 0 (reverse (ok-debug-call-stack)))))
-        (t0 (float-time)))
+        (t0 (float-time))
+        result)
     (message "BEG %s" old-fun-sym)
-    (apply old-fun _)
-    (message "END %s (ran for %f sec)" old-fun-sym (- (float-time) t0))))
+    (setq result (apply old-fun _))
+    (message "END %s (ran for %f sec)" old-fun-sym (- (float-time) t0))
+    result))
 
 (defun ok-debug-call-stack ()
   "Return the current call stack frames.
