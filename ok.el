@@ -1,10 +1,10 @@
 ;;; ok.el --- Okome Studio utilities  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2024 Taro Sato
+;; Copyright (C) 2024-2025 Taro Sato
 ;;
 ;; Author: Taro Sato <okomestudio@gmail.com>
 ;; URL: https://github.com/okomestudio/
-;; Version: 0.1
+;; Version: 0.2.1
 ;; Keywords: development, convenience
 ;; Package-Requires: ((emacs "29.1"))
 ;;
@@ -31,6 +31,7 @@
 
 (require 'ok-buffer)
 (require 'ok-datetime)
+(require 'ok-debug)
 (require 'ok-edit)
 (require 'ok-face)
 (require 'ok-font)
@@ -44,43 +45,6 @@
   "Okome Studio utility group."
   :prefix "ok-"
   :group 'development)
-
-(defcustom ok-debug nil
-  "Global flag for debugging.
-Set to non-nil to be in debug mode. Set to nil to non-debug mode."
-  :group 'ok)
-
-(defun ok-debug-message (text)
-  "Print a debug message TEXT with timestamp."
-  (message "%s %s"
-           (format-time-string "%FT%H:%M:%S.%3N" (current-time))
-           text))
-
-(defun ok-prepend-timestamp (format-string &rest args)
-  "Prepend timestamp to `message' output.
-FORMAT-STRING and ARGS are passed through. See
-https://emacs.stackexchange.com/a/38511/599."
-  ;; If `message-log-max' is nil, message logging is disabled
-  (if message-log-max
-      (let ((deactivate-mark nil)
-            (inhibit-read-only t))
-        (with-current-buffer "*Messages*"
-          (goto-char (point-max))
-          (if (not (bolp))
-              (newline))
-          (insert (format-time-string "%FT%H:%M:%S.%3N" (current-time)) " "
-                  ;; NOTE: Temporarily added to find the source of empty
-                  ;; lines in *Message* buffer
-                  (if ok-debug (format "[\"%s\" %s] " format-string `(,args)) ""))))))
-
-(advice-add 'message :before 'ok-prepend-timestamp)
-
-(defun ok-execution-time (name &rest body)
-  "Measure execution time of BODY named NAME."
-  (let ((t0 (float-time)))
-    (unwind-protect
-        (progn body)
-      (message "%s ran in %f" name (- (float-time) t0)))))
 
 (defmacro ok-safe-local-variable-add (&rest pairs)
   "Add variable-function PAIRS to `safe-local-variable'."
