@@ -38,6 +38,7 @@
 (require 'ok-file)
 (require 'ok-prompt)
 (require 'ok-string)
+(require 'ok-theme)
 (require 'ok-sys)
 (require 'ok-web)
 
