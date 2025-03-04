@@ -47,7 +47,7 @@ Example:
                                      (if (< factor 1.0)
                                          (* x factor)
                                        (+ x (* (- 1.0 x) (- factor 1.0))))))))))))
-    (format "#%X" result)))
+    (format "#%06X" result)))
 
 (defun ok-face-text-scale-mode-height ()
   "Get the default face height if `text-scale-mode' is active."
