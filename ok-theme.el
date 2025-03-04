@@ -42,6 +42,10 @@ THEME defaults to `ok-theme-default' if not given,"
 
       (add-hook 'after-init-hook #'ok-theme-enable--after-init))))
 
+(defvar before-enable-theme-functions nil
+  "Hooks to run before enabling a theme in `ok-theme-enable'.
+The hook function should take `theme' as a single argument.")
+
 (defun ok-theme-enable (theme)
   "Disable all enabled themes before `enable-theme' FUN on THEME.
 NOTE(2025-03-03): It is important to use `load-theme' with the enable
@@ -53,6 +57,7 @@ when used non-interactively."
                   obarray (lambda (sym)
                             (get sym 'theme-settings)) t))))
   (mapc #'disable-theme custom-enabled-themes)
+  (run-hook-with-args 'before-enable-theme-functions theme)
   (load-theme theme t))
 
 (provide 'ok-theme)
