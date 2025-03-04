@@ -1,4 +1,22 @@
 ;;; ok-file.el --- Okome Studio file utilities  -*- lexical-binding: t -*-
+;;
+;; Copyright (C) 2024-2025 Taro Sato
+;;
+;;; License:
+;;
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;;
 ;;; Commentary:
 ;;; Code:
 
@@ -34,6 +52,11 @@ When a new file is created, the function returns the path to it."
     (when (not (file-exists-p dest))
       (url-copy-file src dest)
       dest)))
+
+(defun ok-file-expand-user-emacs-file (&rest components)
+  "Expand the path by concatenating COMPONENTS to `user-emacs-directory'."
+  (convert-standard-filename
+   (locate-user-emacs-file (apply #'file-name-concat components))))
 
 (defun ok-file-locate-dominating-files (file name)
   "Look upward from FIL in directory hierarchy to locate files named NAME.
