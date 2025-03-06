@@ -20,37 +20,39 @@
 ;;; Commentary:
 ;;; Code:
 
-(defcustom ok-theme-default nil
-  "Default theme."
-  :type 'symbol
+(require 'dash)
+
+(defcustom ok-theme-custom-themes nil
+  "Themes to make available for lazy loading.
+Each item in the list is `(feature . file)'. `file' is either an
+absolute path or a path relative to `user-emacs-directory'."
+  :type '(repeat (cons symbol string))
   :group 'ok)
 
-(defun ok-theme-prepare-enable-on-startup (&optional theme)
-  "Prepare THEME to be enabled at Emacs startup.
-THEME defaults to `ok-theme-default' if not given,"
-  (let ((theme (or theme ok-theme-default)))
-    (if (daemonp)
-        (progn
-          (defun ok-theme-enable--as-daemon (frame)
-            (with-selected-frame frame
-              (ok-theme-enable theme)))
+;;;###autoload
+(defun ok-theme-prepare-enable-on-startup (theme feature)
+  "Prepare THEME defined in FEATURE to be enabled at Emacs startup."
+  (if (daemonp)
+      (progn
+        (defun ok-theme-enable--as-daemon (frame)
+          (with-selected-frame frame
+            (ok-theme-prepare feature)
+            (ok-theme-enable theme)))
 
-          (add-hook 'after-make-frame-functions #'ok-theme-enable--as-daemon))
+        (add-hook 'after-make-frame-functions #'ok-theme-enable--as-daemon))
 
-      (defun ok-theme-enable--after-init ()
-        (ok-theme-enable theme))
+    (defun ok-theme-enable--after-init ()
+      (ok-theme-prepare feature)
+      (ok-theme-enable theme))
 
-      (add-hook 'after-init-hook #'ok-theme-enable--after-init))))
+    (add-hook 'after-init-hook #'ok-theme-enable--after-init)))
 
 (defvar before-enable-theme-functions nil
-  "Hooks to run before enabling a theme in `ok-theme-enable'.
-The hook function should take `theme' as a single argument.")
+  "Hooks to run just before enabling a theme in `ok-theme-enable'.
+The hook should take `theme' as an argument.")
 
 (defun ok-theme-enable (theme)
-  "Disable all enabled themes before `enable-theme' FUN on THEME.
-NOTE(2025-03-03): It is important to use `load-theme' with the enable
-option to enable a theme non-interactively. `enable-theme' does not work
-when used non-interactively."
+  "Enable THEME after disabling all other themes."
   (interactive
    (list (intern (completing-read
                   "Enable custom theme: "
@@ -58,7 +60,26 @@ when used non-interactively."
                             (get sym 'theme-settings)) t))))
   (mapc #'disable-theme custom-enabled-themes)
   (run-hook-with-args 'before-enable-theme-functions theme)
+
+  ;; NOTE(2025-03-03): It is important to use `load-theme' with the
+  ;; enable option to enable a theme non-interactively. `enable-theme'
+  ;; does not work when used non-interactively.
   (load-theme theme t))
+
+(defun ok-theme-prepare (feature)
+  "Load FEATURE to make available the themes it defines."
+  (interactive
+   (list (intern (completing-read "Prepare custom theme: "
+                                  (--filter (car it)
+                                            ok-theme-custom-themes)))))
+  (let* ((file (alist-get feature ok-theme-custom-themes))
+         (file (pcase (file-name-absolute-p file)
+                 ('t file)
+                 (_ (ok-file-expand-user-emacs-file file)))))
+    (condition-case nil
+        (load file)
+      (error "File (%s) not found for theme feature `%s'" file feature)))
+  (require feature))
 
 (provide 'ok-theme)
 ;;; ok-theme.el ends here

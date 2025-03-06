@@ -3,10 +3,10 @@
 ;; Copyright (C) 2024-2025 Taro Sato
 ;;
 ;; Author: Taro Sato <okomestudio@gmail.com>
-;; URL: https://github.com/okomestudio/
-;; Version: 0.2.1
+;; URL: https://github.com/okomestudio/ok.el
+;; Version: 0.2.2
 ;; Keywords: development, convenience
-;; Package-Requires: ((emacs "29.1"))
+;; Package-Requires: ((emacs "29.1") (dash "2.19.1"))
 ;;
 ;;; License:
 ;;
