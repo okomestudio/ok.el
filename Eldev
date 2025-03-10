@@ -2,3 +2,5 @@
 
 ;; explicitly set main file
 (setf eldev-project-main-file "ok.el")
+
+(eldev-use-package-archive 'melpa)
