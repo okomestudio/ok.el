@@ -1,6 +1,6 @@
 ;;; ok-string.el --- String  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2024 Taro Sato
+;; Copyright (C) 2024-2025 Taro Sato
 ;;
 ;;; License:
 ;;
@@ -22,6 +22,23 @@
 ;; The `ok-string' module provides string utilities.
 ;;
 ;;; Code:
+
+(defun ok-string-contains-ja-p (s)
+  "Return non-nil if STRING contains any Japanese characters."
+  ;; CJK Unified Ideographs: U+4E00–U+9FFF (common character in CJK)
+  ;; CJK Extensions: U+3400–U+4DBF, U+20000–U+2A6DF, etc.
+  ;; Hangul Syllables (Korean): U+AC00–U+D7AF
+  ;; Hiragana (Japanese): U+3040–U+309F
+  ;; Katakana (Japanese): U+30A0–U+30FF
+  ;; CJK Symbols and Punctuation: U+3000–U+303F
+  (let ((chars (string-to-list s))
+        (found nil))
+    (dolist (char chars found)
+      (when (or (and (>= char #x3040) (<= char #x309F))
+                (and (>= char #x30A0) (<= char #x30FF))
+                (and (>= char #x4E00) (<= char #x9FFF)))
+        (setq found t)))
+    found))
 
 (defun ok-string-format (s &optional alist)
   "The `format' function with named fields.
