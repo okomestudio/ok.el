@@ -65,24 +65,26 @@ N is a zero-index, starting from current frame."
            (format-time-string "%FT%H:%M:%S.%3N" (current-time))
            text))
 
-(defun ok-debug-prepend-timestamp (format-string &rest args)
+(defun ok-debug-prepend-timestamp (fun format-string &rest args)
   "Prepend timestamp to `message' output.
-FORMAT-STRING and ARGS are passed through. See
-https://emacs.stackexchange.com/a/38511/599."
+FORMAT-STRING and ARGS are passed through to FUN. See
+emacs.stackexchange.com/a/38511/599."
   ;; If `message-log-max' is nil, message logging is disabled
-  (if message-log-max
-      (let ((deactivate-mark nil)
-            (inhibit-read-only t))
-        (with-current-buffer "*Messages*"
-          (goto-char (point-max))
-          (if (not (bolp))
-              (newline))
-          (insert (format-time-string "%FT%H:%M:%S.%3N" (current-time)) " "
-                  ;; NOTE: Temporarily added to find the source of empty
-                  ;; lines in *Message* buffer
-                  (if ok-debug (format "[\"%s\" %s] " format-string `(,args)) ""))))))
+  (when message-log-max
+    (let ((deactivate-mark nil)
+          (inhibit-read-only t))
+      (with-current-buffer "*Messages*"
+        (goto-char (point-max))
+        (when (not (bolp)) (newline))
+        (insert (format-time-string "%FT%H:%M:%S.%3N" (current-time)) " ")
+        (apply fun `(,format-string ,@args))
+        (when ok-debug
+          ;; NOTE: Temporarily add args to inspect the source of empty
+          ;; lines in *Message* buffer:
+          (backward-char)
+          (insert (format " [\"%s\" %s]" format-string `(,args)) ""))))))
 
-(advice-add 'message :before 'ok-debug-prepend-timestamp)
+(advice-add #'message :around #'ok-debug-prepend-timestamp)
 
 (provide 'ok-debug)
 ;;; ok-debug.el ends here
