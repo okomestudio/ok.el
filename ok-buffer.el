@@ -1,6 +1,6 @@
 ;;; ok-buffer.el --- Okome Studio buffer utilities  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2024 Taro Sato
+;; Copyright (C) 2024-2025 Taro Sato
 ;;
 ;;; License:
 ;;
@@ -24,9 +24,19 @@
   "Kill all other buffers.
 See https://stackoverflow.com/a/3417473/515392."
   (interactive)
-  (mapc 'kill-buffer
+  ;; Kill buffers visiting files unless it's currently.
+  (mapc #'kill-buffer
         (delq (current-buffer)
-              (cl-remove-if-not 'buffer-file-name (buffer-list)))))
+              (cl-remove-if-not #'buffer-file-name (buffer-list))))
+  ;; Remove other buffers explicitly.
+  (mapc #'kill-buffer
+        (delq (current-buffer)
+              (cl-remove-if-not
+               (lambda (buffer)
+                 (string-match
+                  "^\\(\\*helpful \\|null\\|magit[-:]\\)"
+                  (buffer-name buffer)))
+               (buffer-list)))))
 
 (defun ok-buffer-revert-no-confirm (&optional force-reverting)
   "Interactive call to `revert-buffer'.
