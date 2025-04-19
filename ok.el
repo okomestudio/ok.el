@@ -4,7 +4,7 @@
 ;;
 ;; Author: Taro Sato <okomestudio@gmail.com>
 ;; URL: https://github.com/okomestudio/ok.el
-;; Version: 0.2.5
+;; Version: 0.2.6
 ;; Keywords: development, convenience
 ;; Package-Requires: ((emacs "29.1") (dash "2.19.1"))
 ;;
@@ -64,6 +64,28 @@
                   expr))
       (setq pairs (cdr (cdr pairs))))
     (macroexp-progn (nreverse expr))))
+
+(defun ok-eval-form-recursively (form)
+  "Recursively evaluate a Lisp FORM.
+This function handles backquote comma forms, backquotes, and nested
+structures and returns the fully evaluated form."
+  (cond
+   ((atom form) form)       ; atomic forms
+   ((consp form)            ; cons cells
+    (pcase form
+      ;; Comma form: (\, EXPR) -> evaluate EXPR
+      ((and `(,\ ,expr) (guard (eq (car form) '\,)))
+       (condition-case err
+           (eval (ok-eval-form-recursively expr) t)
+         (error (message "Error evaluating comma form %s: %s" expr err) nil)))
+
+      ;; Backquote form: (backquote FORM) -> return FORM
+      (`(backquote ,value)
+       (ok-eval-form-recursively value))
+
+      ;; Other lists: recurse on each element
+      (_ (mapcar #'ok-eval-form-recursively form))))
+   (t (error "Invalid form: %s" form))))
 
 (provide 'ok)
 ;;; ok.el ends here
