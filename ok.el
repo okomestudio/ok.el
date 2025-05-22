@@ -4,7 +4,7 @@
 ;;
 ;; Author: Taro Sato <okomestudio@gmail.com>
 ;; URL: https://github.com/okomestudio/ok.el
-;; Version: 0.2.6
+;; Version: 0.2.7
 ;; Keywords: development, convenience
 ;; Package-Requires: ((emacs "29.1") (dash "2.19.1"))
 ;;
@@ -32,6 +32,7 @@
 (require 'ok-buffer)
 (require 'ok-datetime)
 (require 'ok-debug)
+(require 'ok-dir-locals)
 (require 'ok-edit)
 (require 'ok-face)
 (require 'ok-file)
