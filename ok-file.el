@@ -59,29 +59,30 @@ When a new file is created, the function returns the path to it."
    (locate-user-emacs-file (apply #'file-name-concat components))))
 
 (defun ok-file-locate-dominating-files (file name)
-  "Look upward from FIL in directory hierarchy to locate files named NAME.
-This extends the `locate-dominating-file` function not to stop at
-the first occurrence of NAME and continues looking upward in the
-directory tree."
-  (let* ((dir-locals-file (locate-dominating-file file name))
-         (dir-locals-files '())
-         (parent-dir nil))
-    (while dir-locals-file
-      (push dir-locals-file dir-locals-files)
-      (setq parent-dir (ok-file-parent-directory dir-locals-file))
-      (setq dir-locals-file
-            (cond ((not (eq parent-dir nil)) (locate-dominating-file parent-dir name))
-                  (t nil))))
+  "Look upward from FILE in directory tree to locate files named NAME.
+This extends the `locate-dominating-file' function such that the search
+does not stop at the first occurrence of NAME and continues
+looking upward in the directory tree.
+
+The function returns a list. The list elements are sorted  such that
+subdirectories come toward the end."
+  (let ((dominating-file (locate-dominating-file file name))
+        dir-locals-files parent-dir)
+    (while dominating-file
+      (push dominating-file dir-locals-files)
+      (setq parent-dir (ok-file-parent-directory dominating-file))
+      (setq dominating-file (and (not (null parent-dir))
+                                 (locate-dominating-file parent-dir name))))
     dir-locals-files))
 
 (defun ok-file-parent-directory (path)
   "Get the parent directory of PATH.
 This function effectively removes the last component from PATH,
-regardless of the path pointing to a file or a directory. The
-returned directory always ends with a '/' character. The function
-returns nil if no parent directory exists (i.e., PATH points to
-root)."
-  (unless (equal "/" path)
+regardless of the path pointing to a file or a directory. The returned
+directory always ends with a '/' character. The function returns nil
+if no parent directory exists (i.e., PATH points to root)."
+  (setq path (string-trim path))
+  (unless (or (string= "/" path) (string-empty-p path))
     (file-name-directory (directory-file-name (expand-file-name path)))))
 
 (provide 'ok-file)
