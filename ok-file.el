@@ -85,5 +85,89 @@ if no parent directory exists (i.e., PATH points to root)."
   (unless (or (string= "/" path) (string-empty-p path))
     (file-name-directory (directory-file-name (expand-file-name path)))))
 
+;;; Directory Local Variables
+
+(defun ok-file-hack-dir-local-variables--ad (fun)
+  "Walk up the directory tree to load all directory local variables.
+
+The standard function `hack-dir-local-variables' stops looking for
+`dir-locals-file' after the first one found in the current directory
+tree, ignoring ones in parent directories. This function adds an
+enhancement such that all `dir-locals-file' files are loaded in their
+order in the directory tree, i.e., from top to bottom, enabling all to
+be loaded without redefinition in subdirectories.
+
+Note that this behavior is slightly different from that of hook
+functions in `hack-dir-local-get-variables-functions'. See the
+`hack-dir-local-variables' code for the difference in variable loading
+behavior.
+
+Use this function as an around advice for `hack-dir-local-variables',
+which FUN refers to."
+  (let* ((orig-buffer-file-name (buffer-file-name))
+         (dpaths (ok-file-locate-dominating-files (or orig-buffer-file-name
+                                                      default-directory)
+                                                  dir-locals-file)))
+    (unwind-protect
+        (dolist (dpath dpaths)
+          ;; The following fakes visiting a file up the hierarchy:
+          (setq buffer-file-name (file-name-concat dpath dir-locals-file))
+          (funcall fun))
+      (setq buffer-file-name orig-buffer-file-name))))
+
+(defun ok-file-hack-dir-local--get-variables (&optional predicate)
+  "Get all per-directory variables by walking up the directory tree.
+
+The variable getter function extends `hack-dir-local--get-variables' by
+not stopping at the first `dir-locals-file' found. It walks up the
+directory tree to find all of them, merging variables based on their
+proximity of definitions to the location of the current file, i.e.,
+closely defined variables take precedence. For the merging logic, see
+`hack-dir-local-variables' code.
+
+Add this hook function to `hack-dir-local-get-variables-functions', in
+place or in addition to `hack-dir-local--get-variables'. See the
+documentation of `hack-dir-local-get-variables-functions' for detail on
+its return value.
+
+PREDICATE is passed to `dir-locals-collect-variables'."
+  (mapcar
+   (lambda (path)
+     (let ((buffer-file-name (file-name-concat path dir-locals-file)))
+       (let ((res (hack-dir-local--get-variables predicate)))
+         res)))
+   (let ((file (locate-dominating-file (or (buffer-file-name) default-directory)
+                                       dir-locals-file))
+         dir-locals-files parent-dir)
+     (while file
+       (push file dir-locals-files)
+       (setq parent-dir (unless (or (string= "/" file) (string-empty-p file))
+                          (file-name-directory (directory-file-name
+                                                (expand-file-name file)))))
+       (setq file (and (not (null parent-dir))
+                       (locate-dominating-file parent-dir dir-locals-file))))
+     (mapcar #'expand-file-name dir-locals-files))))
+
+;; Reloading utilities (see https://emacs.stackexchange.com/a/13096/599)
+
+(defvar default-directory-symlinked nil
+  "Set `default-directory' for symlinked `dir-locals-file'.
+Set this within symlinked `dir-locals-file'.")
+
+(defun ok-file-dir-locals-reload-for-current-buffer ()
+  "Reload currently visited .dir-locals.el buffer."
+  (interactive)
+  (let ((enable-local-variables :all))
+    (hack-dir-local-variables)))
+
+(defun ok-file-dir-locals-reload-for-all-buffers ()
+  "Reload `dir-locals-file' for all buffers in `default-directory'."
+  (interactive)
+  (let ((dir (or default-directory-symlinked default-directory)))
+    (dolist (buffer (buffer-list))
+      (when (file-in-directory-p (buffer-file-name buffer) dir)
+        (with-current-buffer buffer
+          (hack-dir-local-variables))))))
+
 (provide 'ok-file)
 ;;; ok-file.el ends here
