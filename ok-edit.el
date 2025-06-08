@@ -55,13 +55,14 @@ spaces."
     (back-to-indentation)
     (newline-and-indent) ;; do we need `indent-accoring-to-mode'?
     ))
-(make-obsolete #'ok-edit-insert-new-line-above #'crux-smart-open-line-above "0.4.2")
+(make-obsolete #'ok-edit-insert-newline-above #'crux-smart-open-line-above "0.4.2")
 
 (defun ok-edit-insert-newline-below ()
   "Insert a new line below current point."
   (interactive)
   (end-of-line)
   (newline-and-indent))
+(make-obsolete #'ok-edit-insert-newline-below #'crux-smart-open-line "0.4.2")
 
 (defun ok-edit-insert-section-delimiter ()
   "Insert a section delimiter character (❬)."
