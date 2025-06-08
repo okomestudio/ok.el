@@ -1,6 +1,6 @@
 ;;; ok-edit.el --- Okome Studio edit utilities  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2024 Taro Sato
+;; Copyright (C) 2024-2025 Taro Sato
 ;;
 ;;; License:
 ;;
@@ -55,6 +55,7 @@ spaces."
     (back-to-indentation)
     (newline-and-indent) ;; do we need `indent-accoring-to-mode'?
     ))
+(make-obsolete #'ok-edit-insert-new-line-above #'crux-smart-open-line-above "0.4.2")
 
 (defun ok-edit-insert-newline-below ()
   "Insert a new line below current point."
