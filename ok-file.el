@@ -169,5 +169,23 @@ Set this within symlinked `dir-locals-file'.")
         (with-current-buffer buffer
           (hack-dir-local-variables))))))
 
+;;; Utilities for `safe-local-variable-directories'
+
+(defun ok-file-safe-local-variable-directories-add ()
+  "Add the current directory to `safe-local-variable-directories'."
+  (interactive)
+  (when default-directory
+    (add-to-list 'safe-local-variable-directories default-directory)))
+
+(defun ok-file-safe-local-variable-directories-remove (&optional d)
+  "Remove a directory D from `safe-local-variable-directories'.
+If D is not given, the function will prompt for it interactively."
+  (interactive)
+  (let ((d (or d
+               (completing-read "Select directory to remove: "
+                                safe-local-variable-directories))))
+    (setq safe-local-variable-directories
+          (delete d safe-local-variable-directories))))
+
 (provide 'ok-file)
 ;;; ok-file.el ends here
