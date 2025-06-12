@@ -45,7 +45,10 @@ absolute path or a path relative to `user-emacs-directory'."
       (ok-theme-prepare feature)
       (ok-theme-enable theme))
 
-    (add-hook 'after-init-hook #'ok-theme-enable--after-init)))
+    ;; Espeically when `desktop-save-mode' is active, theme activation
+    ;; should be performed early, so that they are ready when saved
+    ;; desktop settings are restored.
+    (add-hook 'after-init-hook #'ok-theme-enable--after-init -99)))
 
 (defvar before-enable-theme-functions nil
   "Hooks to run just before enabling a theme in `ok-theme-enable'.
