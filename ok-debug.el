@@ -26,7 +26,8 @@
 (defcustom ok-debug nil
   "Global flag for debugging.
 Set to non-nil to be in debug mode. Set to nil to non-debug mode."
-  :group 'ok)
+  :group 'ok
+  :type 'boolean)
 
 (defun ok-debug-ad-function-beg-end (old-fun &rest _)
   "Advice OLD-FUN to message at the beginning and end of execution."
@@ -65,24 +66,30 @@ N is a zero-index, starting from current frame."
            (format-time-string "%FT%H:%M:%S.%3N" (current-time))
            text))
 
+(defcustom ok-debug-message-args nil
+  "Global flag for debugging.
+Set to non-nil to show arguments to `message' when `ok-debug' is non-nil."
+  :group 'ok
+  :type 'boolean)
+
 (defun ok-debug-prepend-timestamp (fun format-string &rest args)
   "Prepend timestamp to `message' output.
-FORMAT-STRING and ARGS are passed through to FUN. See
-emacs.stackexchange.com/a/38511/599."
-  ;; If `message-log-max' is nil, message logging is disabled
-  (when message-log-max
-    (let ((deactivate-mark nil)
-          (inhibit-read-only t))
-      (with-current-buffer "*Messages*"
-        (goto-char (point-max))
+FORMAT-STRING and ARGS are passed through to FUN (`message')."
+  ;; Be mindful of the role of `message-log-max' in `message'. When it
+  ;; is non-nil, the output is sent to both minibuffer and the
+  ;; *Message* buffer. When it is nil, the output is sent to
+  ;; minibuffer only.
+  (let ((deactivate-mark nil)
+        (inhibit-read-only t))
+    (with-current-buffer "*Messages*"
+      (goto-char (point-max))
+      (when message-log-max
         (when (not (bolp)) (newline))
-        (insert (format-time-string "%FT%H:%M:%S.%3N" (current-time)) " ")
-        (apply fun `(,format-string ,@args))
-        (when ok-debug
-          ;; NOTE: Temporarily add args to inspect the source of empty
-          ;; lines in *Message* buffer:
-          (backward-char)
-          (insert (format " [\"%s\" %s]" format-string `(,args)) ""))))))
+        (insert (format-time-string "%FT%H:%M:%S.%3N" (current-time)) " "))
+      (apply fun `(,format-string ,@args))
+      (when (and message-log-max ok-debug ok-debug-message-args)
+        (backward-char)
+        (insert (format " [\"%s\" %s]" format-string `(,args)) "")))))
 
 (advice-add #'message :around #'ok-debug-prepend-timestamp)
 
