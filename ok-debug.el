@@ -23,11 +23,23 @@
 ;;
 ;;; Code:
 
+(defvar ok-debug--variables nil
+  "Variables to have the same value as `ok-debug'.")
+
 (defcustom ok-debug nil
   "Global flag for debugging.
-Set to non-nil to be in debug mode. Set to nil to non-debug mode."
+Set to non-nil for debug mode. Set to nil for non-debug mode."
   :group 'ok
-  :type 'boolean)
+  :type 'boolean
+  :set (lambda (sym val)
+         (set-default sym val)
+         (mapc (lambda (it) (eval `(setopt ,it ,val))) ok-debug--variables)))
+
+(defun ok-debug-register (&rest vars)
+  "Register variables VARS (as symbols) to sync with `ok-debug'."
+  (dolist (var vars)
+    (eval `(setopt ,var ,ok-debug))
+    (add-to-list 'ok-debug--variables var)))
 
 (defun ok-debug-ad-function-beg-end (old-fun &rest _)
   "Advice OLD-FUN to message at the beginning and end of execution."
