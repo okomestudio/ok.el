@@ -1,6 +1,6 @@
 ;;; ok-font.el --- Font  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2024 Taro Sato
+;; Copyright (C) 2024-2025 Taro Sato
 ;;
 ;;; License:
 ;;
@@ -30,7 +30,6 @@
 
 (defun ok-font-install-from-url (url &optional dir)
   "Download a font file at URL and install it under DIR.
-
 When not given, DIR defaults to the value of XDG_DATA_HOME
 environment variable.
 
@@ -51,7 +50,7 @@ it."
   "Update font cache."
   (async-shell-command "fc-cache -f -v"))
 
-;;; FONTSET
+;;; Fontset
 
 (defvar ok-fontset-lang-charsets
   '((ja japanese-jisx0208
@@ -75,25 +74,28 @@ another fontset from a different language."
     (dolist (charset charsets)
       (set-fontset-font fontset charset font-spec frame))))
 
-(defun ok-fontset-create (fontset font-family &rest kwargs)
+(cl-defun ok-fontset-create (fontset
+                             font-family
+                             &key
+                             (frame nil)
+                             (subsets nil)
+                             (char-specs nil))
   "Create FONTSET using FONT-FAMILY.
+The optional keyword arguments are:
 
-KWARGS take the following arguments:
+  - FRAME: The frame with which the fontset is associated
+  - SUBSETS: A list of (language . font-spec) pairs
+  - CHAR-SPECS: A list of (character . font-spec) pairs
 
-:frame - The frame with which the fontset is associated.
-:subsets - A list of (language font-spec) pair.
-
-When the subsets are given, they are used to set the language
-subsets to the corresponding font-spec."
-  (let ((frame (plist-get kwargs :frame))
-        (subsets (plist-get kwargs :subsets)))
-    (ok-font-family-exists-p font-family)
-    (create-fontset-from-fontset-spec
-     (font-xlfd-name (font-spec :family font-family :registry fontset)))
-    (dolist (subset subsets)
-      (let ((lang (car subset))
-            (font-spec (cadr subset)))
-        (ok-fontset-set-font fontset lang font-spec frame)))))
+When the subsets are given, they are used to set the language subsets to
+the corresponding font-spec."
+  (ok-font-family-exists-p font-family)
+  (create-fontset-from-fontset-spec
+   (font-xlfd-name (font-spec :family font-family :registry fontset)))
+  (pcase-dolist (`(,lang . ,spec) subsets)
+    (ok-fontset-set-font fontset lang spec frame))
+  (pcase-dolist (`(,char . ,spec) char-specs)
+    (set-fontset-font fontset char spec)))
 
 (provide 'ok-font)
 ;;; ok-font.el ends here
