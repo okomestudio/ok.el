@@ -29,17 +29,18 @@
     (message "WARNING: Font for `%s' not found" font-family)))
 
 (defun ok-font-install-from-url (url &optional dir)
-  "Download a font file at URL and install it under DIR.
-When not given, DIR defaults to the value of XDG_DATA_HOME
-environment variable.
+  "Download a font file at URL and install as a file in DIR.
+When not given, DIR defaults to '$XDG_DATA_HOME/fonts/' or
+'~/.local/share/fonts/' if the environment variable XDG_DATA_HOME is not
+set.
 
-When a new font file is created, the function returns the path to
-it."
-  (let ((dir (or dir
-                 (expand-file-name "fonts/"
-                                   (or (getenv "XDG_DATA_HOME")
-                                       "~/.local/share/")))))
-    (ok-file-ensure-from-url url dir)))
+The function returns a file path when a new file is created, or nil if no
+new file is created."
+  (ok-file-ensure-from-url url
+                           (or dir
+                               (expand-file-name "fonts/"
+                                                 (or (getenv "XDG_DATA_HOME")
+                                                     "~/.local/share/")))))
 
 (defun ok-font-installed-p (font-name)
   "Return non-nil if font with FONT-NAME is installed."

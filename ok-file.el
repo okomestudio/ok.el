@@ -34,21 +34,31 @@ detail."
    (concat "https://raw.githubusercontent.com/" src) dest))
 
 (defun ok-file-ensure-from-url (src &optional dest)
-  "Download file from SRC and save as the local file DEST.
+  "Download from SRC (a URL) and save it to a file at DEST.
+DEST is the destination filesystem path, defaulting to
+`default-directory' if not provided. If DEST is a relative path, it gets
+resolved relative to `default-directory'.
 
-SRC is the source URL. If DEST is not given, the filename is
-inferred from the URL and used as relative DEST. Relative DEST
-will be resolved relative to `default-directory'. If DEST points
-to an existing directory, a file will be created with the same
-name as in SRC.
+The directory component of DEST must already exists in the filesystem.
+If not, the function will throw an error.
 
-When a new file is created, the function returns the path to it."
-  (let* ((filename (file-name-nondirectory src))
-         (dest (if (and dest (file-name-absolute-p dest))
-                   dest
-                 (expand-file-name (or dest filename)))))
-    (when (file-directory-p dest)
-      (setq dest (file-name-concat dest filename)))
+If DEST's final component is a file, the resource at SRC is renamed to
+that filename upon save. Otherwise, the filename in SRC will be used as
+the filename of the downloaded resource.
+
+The function returns the absolute path to the file when it is newly
+created. It returns nil, if download was skipped as the file already
+exists."
+  (let ((dest (expand-file-name (or dest ".")))
+        dirpath filename)
+    (if (file-directory-p dest) ; is dest an existing directory?
+        (setq dirpath dest
+              filename (file-name-nondirectory src))
+      (if (file-directory-p (file-name-directory dest))
+          (setq dirpath (file-name-directory dest)
+                filename (file-name-nondirectory dest))
+        (error "%s is not a directory" (file-name-directory dest))))
+    (setq dest (file-name-concat dirpath filename))
     (when (not (file-exists-p dest))
       (url-copy-file src dest)
       dest)))
