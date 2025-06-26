@@ -1,4 +1,4 @@
-;;; ok-theme.el --- Okome Studio system utilities  -*- lexical-binding: t -*-
+;;; ok-theme.el --- Theme Enhancements  -*- lexical-binding: t -*-
 ;;
 ;; Copyright (C) 2024-2025 Taro Sato
 ;;
@@ -18,70 +18,93 @@
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ;;
 ;;; Commentary:
+;;
+;; The module for enhancing custom theme-related functions.
+;;
 ;;; Code:
 
 (require 'dash)
 
 (defcustom ok-theme-custom-themes nil
-  "Themes to make available for lazy loading.
-Each item in the list is `(feature . file)'. `file' is either an
-absolute path or a path relative to `user-emacs-directory'."
+  "Custom themes to make available for lazy loading.
+This is a list of cons `(feature . file)'. `feature' as a symbol is the
+feature providing themes. `file' is a file path (either absolute or
+relative to `user-emacs-directory') to Lisp file configuring the themes."
   :type '(repeat (cons symbol string))
   :group 'ok)
 
+(defcustom ok-theme-presets nil
+  "The alist defining theme presets.
+In each alist element, the key is a theme preset name (a symbol). The
+value is an ordered list of `(theme . feature)' pairs. When a theme
+preset is activated, these pairs are loaded and enabled in that order to
+ensure deterministic theme loading behavior."
+  :type '(repeat (cons symbol (repeat (cons symbol symbol))))
+  :group 'ok)
+
 ;;;###autoload
-(defun ok-theme-prepare-enable-on-startup (theme feature)
-  "Prepare THEME defined in FEATURE to be enabled at Emacs startup."
+(defun ok-theme-enable-preset (preset)
+  "Load and enable a PRESET in `ok-theme-presets'."
+  (interactive (list (intern (completing-read "Enable preset themes: "
+                                              (--map (car it) ok-theme-presets)))))
+  (let ((themes (alist-get preset ok-theme-presets)))
+    (dolist (feature (--map (cdr it) themes))
+      (ok-theme-prepare feature))
+    (ok-theme-enable (--map (car it) themes))))
+
+;;;###autoload
+(defun ok-theme-prepare-enable-on-startup (preset)
+  "Prepare a PRESET in `ok-theme-presets' for activation at Emacs startup."
   (if (daemonp)
       (progn
         (defun ok-theme-enable--as-daemon (frame)
           (with-selected-frame frame
-            (ok-theme-prepare feature)
-            (ok-theme-enable theme)))
+            (ok-theme-enable-preset preset)))
 
         (add-hook 'after-make-frame-functions #'ok-theme-enable--as-daemon))
 
     (defun ok-theme-enable--after-init ()
-      (ok-theme-prepare feature)
-      (ok-theme-enable theme))
+      (ok-theme-enable-preset preset))
 
-    ;; Espeically when `desktop-save-mode' is active, theme activation
-    ;; should be performed early, so that they are ready when saved
-    ;; desktop settings are restored.
-    (add-hook 'after-init-hook #'ok-theme-enable--after-init -99)))
+    (add-hook 'after-init-hook #'ok-theme-enable--after-init 98)))
 
 (defvar before-enable-theme-functions nil
-  "Hooks to run just before enabling a theme in `ok-theme-enable'.
-The hook should take `theme' as an argument.")
+  "Hooks to run just before the function `ok-theme-enable' enables a theme.
+The hook function is called with `theme' as an argument.")
 
+;;;###autoload
 (defun ok-theme-enable (theme)
-  "Enable THEME after disabling all other themes."
+  "Enable THEME after disabling all themes.
+THEME is either a symbol or a list of symbols specifying themes."
   (interactive
-   (list (intern (completing-read
-                  "Enable custom theme: "
-                  obarray (lambda (sym)
-                            (get sym 'theme-settings)) t))))
+   (list (intern (completing-read "Enable custom theme: "
+                                  obarray (lambda (sym)
+                                            (get sym 'theme-settings)) t))))
   (mapc #'disable-theme custom-enabled-themes)
-  (run-hook-with-args 'before-enable-theme-functions theme)
 
-  ;; NOTE(2025-03-03): It is important to use `load-theme' with the
-  ;; enable option to enable a theme non-interactively. `enable-theme'
-  ;; does not work when used non-interactively.
-  (load-theme theme t))
+  (dolist (theme (if (listp theme) theme `(,theme)))
+    (run-hook-with-args 'before-enable-theme-functions theme)
+
+    ;; NOTE(2025-03-03): It is important to use `load-theme' with the
+    ;; enable option to enable a theme non-interactively.
+    ;; `enable-theme' does not work when used non-interactively.
+    (load-theme theme t)))
 
 (defun ok-theme-prepare (feature)
-  "Load FEATURE to make available the themes it defines."
+  "Load FEATURE to make its themes available."
   (interactive
    (list (intern (completing-read "Prepare custom theme: "
                                   (--filter (car it)
                                             ok-theme-custom-themes)))))
-  (let* ((file (alist-get feature ok-theme-custom-themes))
-         (file (pcase (file-name-absolute-p file)
-                 ('t file)
-                 (_ (ok-file-expand-user-emacs-file file)))))
-    (condition-case nil
-        (load file)
-      (error "File (%s) not found for theme feature `%s'" file feature)))
+  (if-let* ((file (alist-get feature ok-theme-custom-themes)))
+      (progn
+        (setq file (or (and (file-name-absolute-p file) file)
+                       (ok-file-expand-user-emacs-file file)))
+        (condition-case nil
+            (load file)
+          (error "Could not load theme config file (%s) for `%s'"
+                 file feature)))
+    (error "Feature `%s' not defined in `ok-theme-custom-themes'" feature))
   (require feature))
 
 (provide 'ok-theme)
