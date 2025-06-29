@@ -54,10 +54,12 @@
                  tooltip-text
                (funcall tooltip-text window nil point)))
        (space-width (string-pixel-width " "))
+       (dx (min (length (substring-no-properties text))
+                (car x-max-tooltip-size)))
        (left (+ window-x window-left frame-left
                 (* space-width
                    (if (> window-x (/ (window-width window t) 2))
-                       (* -1 (1- (car x-max-tooltip-size)))
+                       (* -1 (1- dx))
                      1))))
        (top (+ window-y window-top frame-top (* space-width 6))))
     (add-to-list 'tooltip-frame-parameters `(left . ,left))
