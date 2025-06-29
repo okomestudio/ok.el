@@ -60,8 +60,8 @@
                        (* -1 (1- (car x-max-tooltip-size)))
                      1))))
        (top (+ window-y window-top frame-top (* space-width 6))))
-    (dolist (sym '(left top))
-      (add-to-list 'tooltip-frame-parameters (cons sym (symbol-value sym))))
+    (add-to-list 'tooltip-frame-parameters `(left . ,left))
+    (add-to-list 'tooltip-frame-parameters `(top . ,top))
     (tooltip-show text)))
 
 (defvar ok-tooltip--timer nil
