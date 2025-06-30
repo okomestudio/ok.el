@@ -1,4 +1,4 @@
-;;; ok-buffer.el --- Okome Studio buffer utilities  -*- lexical-binding: t -*-
+;;; ok-buffer.el --- Enhance buffer functions  -*- lexical-binding: t -*-
 ;;
 ;; Copyright (C) 2024-2025 Taro Sato
 ;;
@@ -18,13 +18,28 @@
 ;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ;;
 ;;; Commentary:
+;;
+;; This module enhances builtin buffer functions.
+;;
 ;;; Code:
+
+(defun ok-buffer-kill-all-but-special ()
+  "Kill all buffers that are neither special or internal.
+Special or internal buffers are identified by their name wrapped with '*'
+characters, e.g., '*Messages*'. The currently selected buffer will not be
+killed."
+  (interactive)
+  (mapc (lambda (buffer)
+          (unless (or (string-match-p "\\*.*\\*" (buffer-name buffer))
+                      (eq buffer (current-buffer)))
+            (kill-buffer buffer)))
+        (buffer-list)))
 
 (defun ok-buffer-kill-others ()
   "Kill all other buffers.
 See https://stackoverflow.com/a/3417473/515392."
   (interactive)
-  ;; Kill buffers visiting files unless it's currently.
+  ;; Kill buffers visiting files unless it's current.
   (mapc #'kill-buffer
         (delq (current-buffer)
               (cl-remove-if-not #'buffer-file-name (buffer-list))))
@@ -33,17 +48,15 @@ See https://stackoverflow.com/a/3417473/515392."
         (delq (current-buffer)
               (cl-remove-if-not
                (lambda (buffer)
-                 (string-match
-                  "^\\(\\*helpful \\|null\\|magit[-:]\\)"
-                  (buffer-name buffer)))
+                 (string-match "^\\(\\*helpful \\|null\\|magit[-:]\\)"
+                               (buffer-name buffer)))
                (buffer-list)))))
 
 (defun ok-buffer-revert-no-confirm (&optional force-reverting)
   "Interactive call to `revert-buffer'.
-Ignore auto-save and do not request for confirmation. When the
-current buffer is modified, the command refuses to revert it,
-unless you specify the optional argument: FORCE-REVERTING to
-non-nil."
+Ignore auto-save and do not request for confirmation. When the current buffer is
+modified, the command refuses to revert it, unless you specify the optional
+argument: FORCE-REVERTING to non-nil."
   (interactive "P")
   (if (or force-reverting (not (buffer-modified-p)))
       (revert-buffer :ignore-auto :noconfirm)
