@@ -41,6 +41,19 @@ Set to non-nil for debug mode. Set to nil for non-debug mode."
     (eval `(setopt ,var ,ok-debug))
     (add-to-list 'ok-debug--variables var)))
 
+(defun ok-debug--fun-notify-entry (fun &rest args)
+  "Wrap (FUN ARGS) in an around advice to log entry/exit."
+  (let (result)
+    (message "BEG %s %s" fun args)
+    (setq result (apply fun args))
+    (message "END %s" fun)
+    result))
+
+(defun ok-debug-fun-notify-entry (&rest funs)
+  "Notify entry/exist of each function in FUNS."
+  (dolist (fun funs)
+    (advice-add fun :around #'ok-debug--fun-notify-entry)))
+
 (defun ok-debug-ad-function-beg-end (old-fun &rest _)
   "Advice OLD-FUN to message at the beginning and end of execution."
   (let ((old-fun-sym (nth 2 (nth 0 (reverse (ok-debug-call-stack)))))
