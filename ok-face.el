@@ -1,6 +1,6 @@
 ;;; ok-face.el --- Okome Studio face module  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2024 Taro Sato
+;; Copyright (C) 2024-2025 Taro Sato
 ;;
 ;;; License:
 ;;
@@ -19,6 +19,22 @@
 ;;
 ;;; Commentary:
 ;;; Code:
+
+(defcustom ok-faces-text-scale-per-mode nil
+  "An alist of cons '(major-mode . text-scale)'.
+The alist entries are used to scale text in the specified major mode. Text scale
+of zero means to use no scale See `text-scale-mode' for detail."
+  :group 'ok
+  :type '(repeat (cons symbol number)))
+
+(defun ok-faces-text-scale-per-mode ()
+  "Scale text based on major mode.
+Add this function to `after-change-major-mode-hook'."
+  (interactive)
+  (when-let* ((scale (alist-get major-mode ok-faces-text-scale-per-mode)))
+    (text-scale-set scale)))
+
+(add-hook 'after-change-major-mode-hook #'ok-faces-text-scale-per-mode)
 
 (defun ok-face-color-scale (color factor)
   "Scale RGB COLOR lighter or darker by a numeric FACTOR.
