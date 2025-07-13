@@ -127,36 +127,30 @@ which FUN refers to."
 
 (defun ok-file-hack-dir-local--get-variables (&optional predicate)
   "Get all per-directory variables by walking up the directory tree.
+The variable getter function extends `hack-dir-local--get-variables' by not
+stopping at the first `dir-locals-file' found. It walks up the directory tree to
+find all of them, merging variables based on their proximity of definitions to
+the location of the current file, i.e., closely defined variables take
+precedence. For the merging logic, see `hack-dir-local-variables' code.
 
-The variable getter function extends `hack-dir-local--get-variables' by
-not stopping at the first `dir-locals-file' found. It walks up the
-directory tree to find all of them, merging variables based on their
-proximity of definitions to the location of the current file, i.e.,
-closely defined variables take precedence. For the merging logic, see
-`hack-dir-local-variables' code.
-
-Add this hook function to `hack-dir-local-get-variables-functions', in
-place or in addition to `hack-dir-local--get-variables'. See the
-documentation of `hack-dir-local-get-variables-functions' for detail on
-its return value.
+Add this hook function to `hack-dir-local-get-variables-functions', in place or
+in addition to `hack-dir-local--get-variables'. See the documentation of
+`hack-dir-local-get-variables-functions' for detail on its return value.
 
 PREDICATE is passed to `dir-locals-collect-variables'."
   (mapcar
-   (lambda (path)
-     (let ((buffer-file-name (file-name-concat path dir-locals-file)))
-       (let ((res (hack-dir-local--get-variables predicate)))
-         res)))
-   (let ((file (locate-dominating-file (or (buffer-file-name) default-directory)
-                                       dir-locals-file))
-         dir-locals-files parent-dir)
-     (while file
-       (push file dir-locals-files)
-       (setq parent-dir (unless (or (string= "/" file) (string-empty-p file))
-                          (file-name-directory (directory-file-name
-                                                (expand-file-name file)))))
-       (setq file (and (not (null parent-dir))
-                       (locate-dominating-file parent-dir dir-locals-file))))
-     (mapcar #'expand-file-name dir-locals-files))))
+   (lambda (dir)
+     (let ((buffer-file-name (file-name-concat dir dir-locals-file)))
+       (hack-dir-local--get-variables predicate)))
+   (let ((parent-dir (or (buffer-file-name) default-directory))
+         dirs)
+     (while-let ((dir (when parent-dir
+                        (locate-dominating-file parent-dir dir-locals-file))))
+       (push dir dirs)
+       (setq parent-dir (unless (or (string= "/" dir) (string-empty-p dir))
+                          (file-name-directory
+                           (directory-file-name (expand-file-name dir))))))
+     (mapcar #'expand-file-name dirs))))
 
 ;; Reloading utilities (see https://emacs.stackexchange.com/a/13096/599)
 
