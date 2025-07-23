@@ -33,12 +33,22 @@ Set to non-nil for debug mode. Set to nil for non-debug mode."
   :type 'boolean
   :set (lambda (sym val)
          (set-default sym val)
-         (mapc (lambda (it) (eval `(setopt ,it ,val))) ok-debug--variables)))
+         (mapc (lambda (it) (ok-debug--sync-var it val)) ok-debug--variables)))
+
+(defun ok-debug--sync-var (var val)
+  "Set the value to VAR based on VAL."
+  (cond ((symbolp var)
+         (eval `(setopt ,var ,val)))
+        ((consp var)
+         (eval `(setopt ,(car var) ',(if val (cadr var) (cddr var)))))))
 
 (defun ok-debug-register (&rest vars)
-  "Register variables VARS (as symbols) to sync with `ok-debug'."
+  "Register variables in the list VARS to sync with `ok-debug'.
+Each element of VARS is either a symbol or a cons cell of form `(var . (t-val .
+nil-val))', where `var' is set to `t-val' when `ok-debug' is non-nil and to
+`nil-val' when it is nil."
   (dolist (var vars)
-    (eval `(setopt ,var ,ok-debug))
+    (ok-debug--sync-var var ok-debug)
     (add-to-list 'ok-debug--variables var)))
 
 (defun ok-debug--fun-notify-entry (fun &rest args)
