@@ -4,18 +4,18 @@
 ;;
 ;;; License:
 ;;
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
+;; This program is free software; you can redistribute it and/or modify it under
+;; the terms of the GNU General Public License as published by the Free Software
+;; Foundation, either version 3 of the License, or (at your option) any later
+;; version.
 ;;
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;; This program is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+;; FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+;; details.
 ;;
-;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; You should have received a copy of the GNU General Public License along with
+;; this program. If not, see <https://www.gnu.org/licenses/>.
 ;;
 ;;; Commentary:
 ;;
@@ -23,17 +23,24 @@
 ;;
 ;;; Code:
 
-(defun ok-buffer-kill-all-but-special ()
+(defun ok-buffer-kill-all-but-special (&optional buffers)
   "Kill all buffers that are neither special or internal.
 Special or internal buffers are identified by their name wrapped with '*'
-characters, e.g., '*Messages*'. The currently selected buffer will not be
-killed."
+characters, e.g., '*Messages*'.
+
+The currently selected buffer will not be killed. When given, buffers in the
+list BUFFERS are also excluded from killing."
   (interactive)
-  (mapc (lambda (buffer)
-          (unless (or (string-match-p "\\*.*\\*" (buffer-name buffer))
-                      (eq buffer (current-buffer)))
-            (kill-buffer buffer)))
-        (buffer-list)))
+  (let* ((buffers (when (and buffers (not (listp buffers)))
+                    (list buffers)))
+         (buffers (append buffers (list (current-buffer)))))
+    (message "KKK")
+    (pp buffers)
+    (mapc (lambda (buffer)
+            (unless (or (string-match-p "\\*.*\\*" (buffer-name buffer))
+                        (member buffer buffers))
+              (kill-buffer buffer)))
+          (buffer-list))))
 
 (defun ok-buffer-kill-others ()
   "Kill all other buffers.
