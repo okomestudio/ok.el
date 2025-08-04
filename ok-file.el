@@ -4,21 +4,26 @@
 ;;
 ;;; License:
 ;;
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
+;; This program is free software; you can redistribute it and/or modify it under
+;; the terms of the GNU General Public License as published by the Free Software
+;; Foundation, either version 3 of the License, or (at your option) any later
+;; version.
 ;;
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;; This program is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+;; FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+;; details.
 ;;
-;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; You should have received a copy of the GNU General Public License along with
+;; this program. If not, see <https://www.gnu.org/licenses/>.
 ;;
 ;;; Commentary:
+;;
+;; This module provides utilities generally defined in `files.el'.
+;;
 ;;; Code:
+
+(require 'ok-string)
 
 (defun ok-file-ensure-directory-exists (path)
   "Ensure the directory exists at PATH."
@@ -190,6 +195,28 @@ If D is not given, the function will prompt for it interactively."
                                 safe-local-variable-directories))))
     (setq safe-local-variable-directories
           (delete d safe-local-variable-directories))))
+
+;;; Extend `rename-visited-file'
+
+(defun ok-file--rename-visited-ad (fun &optional new-location)
+  "Around advise FUN to provide NEW-LOCATION contextually.
+In an `org-mode' document, the new name will be suggested from the document
+title. Otherwise, it delegates to `rename-visited-file' normally."
+  (interactive
+   (list
+    (if-let* ((_ (derived-mode-p '(org-mode)))
+              (title (cadr (assoc "TITLE" (org-collect-keywords '("title")))))
+              (filename (format "%s.org" (ok-string-text-to-slug title))))
+        (read-file-name "Rename visited Org file name: "
+                        default-directory
+                        (expand-file-name filename default-directory)
+                        nil
+                        filename))))
+  (if new-location
+      (apply fun (list new-location))
+    (call-interactively fun)))
+
+(advice-add #'rename-visited-file :around #'ok-file--rename-visited-ad)
 
 (provide 'ok-file)
 ;;; ok-file.el ends here
