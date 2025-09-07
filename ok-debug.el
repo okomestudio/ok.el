@@ -35,6 +35,11 @@ Set to non-nil for debug mode. Set to nil for non-debug mode."
          (set-default sym val)
          (mapc (lambda (it) (ok-debug--sync-var it val)) ok-debug--variables)))
 
+(defun ok-debug ()
+  "Toggle `ok-debug'."
+  (interactive)
+  (setopt ok-debug (not ok-debug)))
+
 (defun ok-debug--sync-var (var val)
   "Set the value to VAR based on VAL."
   (cond ((symbolp var)
