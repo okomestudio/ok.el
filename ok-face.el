@@ -4,37 +4,46 @@
 ;;
 ;;; License:
 ;;
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
+;; This program is free software; you can redistribute it and/or modify it under
+;; the terms of the GNU General Public License as published by the Free Software
+;; Foundation, either version 3 of the License, or (at your option) any later
+;; version.
 ;;
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;; This program is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+;; FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+;; details.
 ;;
-;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; You should have received a copy of the GNU General Public License along with
+;; this program. If not, see <https://www.gnu.org/licenses/>.
 ;;
 ;;; Commentary:
 ;;; Code:
 
-(defcustom ok-faces-text-scale-per-mode nil
-  "An alist of cons '(major-mode . text-scale)'.
-The alist entries are used to scale text in the specified major mode. Text scale
-of zero means to use no scale See `text-scale-mode' for detail."
-  :group 'ok
-  :type '(repeat (cons symbol number)))
+;;; Text Scale
 
-(defun ok-faces-text-scale-per-mode ()
-  "Scale text based on major mode.
+(defcustom ok-face-text-scale-per-mode nil
+  "Alist of cons '(major-mode . text-scale)'.
+The alist entries are used to scale text in the specified major mode. Zero for
+text scale means no scale. See `text-scale-mode' for detail."
+  :group 'ok
+  :type '(repeat (cons :tag "Entry"
+                       (symbol :tag "Major mode")
+                       (choice (number :tag "Scale")
+                               (function :tag "Function or lambda")))))
+
+(defun ok-face-text-scale-per-mode ()
+  "Scale text based on current major mode.
 Add this function to `after-change-major-mode-hook'."
   (interactive)
-  (when-let* ((scale (alist-get major-mode ok-faces-text-scale-per-mode)))
+  (when-let* ((v (alist-get major-mode ok-face-text-scale-per-mode))
+              (scale (cond ((numberp v) (text-scale-set v))
+                           (t (funcall v)))))
     (text-scale-set scale)))
 
-(add-hook 'after-change-major-mode-hook #'ok-faces-text-scale-per-mode)
+(add-hook 'after-change-major-mode-hook #'ok-face-text-scale-per-mode)
+
+;;; Color Scale
 
 (defun ok-face-color-scale (color factor)
   "Scale RGB COLOR lighter or darker by a numeric FACTOR.
