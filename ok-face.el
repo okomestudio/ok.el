@@ -37,7 +37,7 @@ text scale means no scale. See `text-scale-mode' for detail."
 Add this function to `after-change-major-mode-hook'."
   (interactive)
   (when-let* ((v (alist-get major-mode ok-face-text-scale-per-mode))
-              (scale (cond ((numberp v) (text-scale-set v))
+              (scale (cond ((numberp v) v)
                            (t (funcall v)))))
     (text-scale-set scale)))
 
