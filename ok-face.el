@@ -41,7 +41,7 @@ Add this function to `after-change-major-mode-hook'."
                            (t (funcall v)))))
     (text-scale-set scale)))
 
-(add-hook 'after-change-major-mode-hook #'ok-face-text-scale-per-mode)
+(add-hook 'after-change-major-mode-hook #'ok-face-text-scale-per-mode 98)
 
 ;;; Color Scale
 
