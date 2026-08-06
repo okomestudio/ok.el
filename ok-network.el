@@ -27,17 +27,21 @@
   "Check asynchronously if HOST and PORT are open.
 Invokes CALLBACK with two arguments, the first being alive status,
 t (up) or nil (down), and the second being the full event message."
-  (make-network-process
-   :name "async-port-check"
-   :host host
-   :service port
-   :type nil                  ; stream
-   :nowait t
-   :sentinel (lambda (proc event)
-               (let ((alive (string-prefix-p "open" event)))
-                 (when (process-live-p proc)
-                   (delete-process proc))
-                 (funcall callback alive event)))))
+  (let ((handled nil))
+    (make-network-process
+     :name "async-port-check"
+     :host host
+     :service port
+     :type nil                ; stream
+     :nowait t
+     :sentinel (lambda (proc event)
+                 (unless handled
+                   (setq handled t)
+                   (let ((alive (string-prefix-p "open" event)))
+                     (set-process-sentinel proc nil)
+                     (when (process-live-p proc)
+                       (delete-process proc))
+                     (funcall callback alive event)))))))
 
 (provide 'ok-network)
 ;;; ok-network.el ends here
