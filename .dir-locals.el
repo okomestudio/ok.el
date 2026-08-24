@@ -4,5 +4,6 @@
    (fill-column . 72)
    (indent-tabs-mode . nil)
    (tab-width . 8)
-   (eval . (aggressive-indent-mode 1)))
+   (eval . (when (boundp 'aggressive-indent-mode)
+             (aggressive-indent-mode 1))))
   ))
