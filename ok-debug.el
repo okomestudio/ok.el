@@ -1,21 +1,21 @@
 ;;; ok-debug.el --- Okome Studio debug utilities  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2024-2025 Taro Sato
+;; Copyright (C) 2024-2026 Taro Sato
 ;;
 ;;; License:
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
+;; the Free Software Foundation, either version 3 of the License, or (at
+;; your option) any later version.
 ;;
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;; This program is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+;; General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+;; along with this program. If not, see <https://www.gnu.org/licenses/>.
 ;;
 ;;; Commentary:
 ;;
@@ -93,12 +93,13 @@ See https://emacs.stackexchange.com/a/2312/599."
 N is a zero-index, starting from current frame."
   (nth 1 (nth (or n 0) (cl-rest (reverse (ok-debug-call-stack))))))
 
-(defun ok-debug-execution-time (name &rest body)
+(defmacro ok-debug-execution-time (name &rest body)
   "Measure execution time of BODY named NAME."
-  (let ((t0 (float-time)))
-    (unwind-protect
-        (progn body)
-      (message "%s ran in %f" name (- (float-time) t0)))))
+  (declare (indent 1))
+  `(let ((t0 (float-time)))
+     (unwind-protect
+         (progn ,@body)
+       (message "%s ran in %f" ,name (- (float-time) t0)))))
 
 (defun ok-debug-message (text)
   "Print a debug message TEXT with timestamp."
