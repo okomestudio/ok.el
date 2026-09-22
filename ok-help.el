@@ -1,6 +1,6 @@
 ;;; ok-help.el --- Enhanced help.el  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2024-2025 Taro Sato
+;; Copyright (C) 2024-2026 Taro Sato
 ;;
 ;;; License:
 ;;

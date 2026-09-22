@@ -1,6 +1,6 @@
 ;;; ok-edit.el --- Okome Studio edit utilities  -*- lexical-binding: t -*-
 ;;
-;; Copyright (C) 2024-2025 Taro Sato
+;; Copyright (C) 2024-2026 Taro Sato
 ;;
 ;;; License:
 ;;
@@ -67,7 +67,7 @@ spaces."
 (defun ok-edit-insert-section-delimiter ()
   "Insert a section delimiter character (❬)."
   (interactive)
-  (insert-char ?❬))
+  (insert-char ?\u276C))    ; character `❬'
 
 (defun ok-edit-insert-zero-width-space ()
   "Insert a zero width space character at point."
