@@ -43,19 +43,53 @@ point where it should be, as `titlecase-dwim doesn't take care of it."
 
 (defun ok-titlecase--headline (text)
   "Normalize headline TEXT, taking into account prefix like Chapter/Section."
-  (let ((case-fold-search t)
-        (re "^\\(chap\\(?:ter\\)?\\|ch\\)\\.?[ \t]+\\([[:alnum:]]+\\)[.: \t─—–-]*\\(.*\\)$")
-        prefix title)
-    (if (string-match re text)
-        (let* ((raw-prefix (match-string 1 text))
-               (num (match-string 2 text))
-               (body (match-string 3 text))
-               (titlecased-prefix (titlecase--string raw-prefix titlecase-style)))
-          (setq prefix (format "%s %s. " titlecased-prefix num)
-                title (string-trim body)))
+  (let* ((case-fold-search t)
+         (num-words (regexp-opt
+                     '("i" "ii" "iii" "iv" "v" "vi" "vii" "viii" "ix" "x"
+                       "one" "two" "three" "four" "five"
+                       "six" "seven" "eight" "nine" "ten"
+                       "eleven" "twelve" "thirteen" "fourteen" "fifteen"
+                       "sixteen" "seventeen" "eighteen" "nineteen" "twenty")))
+         (num (concat "\\(?:" "[0-9]+" "\\|" num-words "\\|[一二三四五六七八九十〇]+\\)"))
+         (delim "[.: \t─—–-]")
+         (re (concat
+              "^\\(?:"
+              "\\(?1:\\(" num "\\)\\([.:─—–-]\\)?[ \t]+\\)"
+              "\\|"
+              "\\(?4:\\(chap\\(?:ter\\)?\\|ch\\|part\\)\\.?[ \t]+\\(" num "\\)" delim "*\\)"
+              "\\|"
+              "\\(?7:\\(第\\)\\(" num "\\)\\(章\\)[ \t]*\\)"
+              "\\)\\(?11:.*\\)$"))
+         prefix title)
+    (if-let* ((_ (string-match re text))
+              (s (match-string 11 text)))
+        (progn
+          (setq title (string-trim s))
+          (cond
+           ((match-string 1 text)
+            (let* ((num (match-string 2 text))
+                   (delim (match-string 3 text)))
+              (setq prefix (when num (concat num (if delim delim ".") " ")))))
+           ((match-string 4 text)
+            (let* ((raw-prefix (match-string 5 text))
+                   (num (match-string 6 text))
+                   (normed (when raw-prefix
+                             (titlecase--string raw-prefix titlecase-style))))
+              (setq prefix (format "%s%s. "
+                                   (if normed (concat normed " ") "")
+                                   num))))
+           ((match-string 7 text)
+            (let* ((raw-prefix-1 (match-string 8 text))
+                   (num (match-string 9 text))
+                   (raw-prefix-2 (match-string 10 text)))
+              (setq prefix (when num
+                             (concat (if raw-prefix-1 raw-prefix-1 "")
+                                     num
+                                     (if raw-prefix-2 raw-prefix-2 "")
+                                     " ")))))))
       (setq title (string-trim text)))
     (concat (if prefix prefix "")
-            (if title (titlecase--string title titlecase-style) ""))))
+            (titlecase--string title titlecase-style))))
 
 (defun ok-titlecase-headlines ()
   "Iterate over headlines in the region or buffer, prompting to titlecase them.
