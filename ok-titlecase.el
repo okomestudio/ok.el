@@ -44,21 +44,25 @@ point where it should be, as `titlecase-dwim doesn't take care of it."
 (defun ok-titlecase--headline (text)
   "Normalize headline TEXT, taking into account prefix like Chapter/Section."
   (let* ((case-fold-search t)
-         (num-words (regexp-opt
-                     '("i" "ii" "iii" "iv" "v" "vi" "vii" "viii" "ix" "x"
-                       "one" "two" "three" "four" "five"
-                       "six" "seven" "eight" "nine" "ten"
-                       "eleven" "twelve" "thirteen" "fourteen" "fifteen"
-                       "sixteen" "seventeen" "eighteen" "nineteen" "twenty")))
-         (num (concat "\\(?:" "[0-9]+" "\\|" num-words "\\|[一二三四五六七八九十〇]+\\)"))
-         (delim "[.: \t─—–-]")
+         (num "[0-9]+\\|[一二三四五六七八九十〇]+")
+         (num-words '("i" "ii" "iii" "iv" "v" "vi" "vii" "viii" "ix" "x"
+                      "one" "two" "three" "four" "five"
+                      "six" "seven" "eight" "nine" "ten"
+                      "eleven" "twelve" "thirteen" "fourteen" "fifteen"
+                      "sixteen" "seventeen" "eighteen" "nineteen" "twenty"))
+         (num-alpha '("A" "B" "C" "D" "E" "F" "G" "H" "I" "J" "K" "L" "M" "N"))
+
+         (re-num (concat "\\(?:" num "\\|" (regexp-opt num-words) "\\)"))
+         (re-alnum (concat "\\(?:" num "\\|" (regexp-opt (append num-words num-alpha)) "\\)"))
+
+         (re-delim "[.: \t─—–-]")
          (re (concat
               "^\\(?:"
-              "\\(?1:\\(" num "\\)\\([.:─—–-]\\)?[ \t]+\\)"
+              "\\(?1:\\(" re-num "\\)\\([.:─—–-]\\)?[ \t]+\\)"
               "\\|"
-              "\\(?4:\\(chap\\(?:ter\\)?\\|ch\\|part\\)\\.?[ \t]+\\(" num "\\)" delim "*\\)"
+              "\\(?4:\\(chap\\(?:ter\\)?\\|ch\\|part\\|appendix\\)\\.?[ \t]+\\(" re-alnum "\\)" re-delim "*\\)"
               "\\|"
-              "\\(?7:\\(第\\)\\(" num "\\)\\(章\\)[ \t]*\\)"
+              "\\(?7:\\(第\\)\\(" re-num "\\)\\(章\\)[ \t]*\\)"
               "\\)\\(?11:.*\\)$"))
          prefix title)
     (if-let* ((_ (string-match re text))
