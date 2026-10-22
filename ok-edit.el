@@ -48,22 +48,6 @@ spaces."
              (emacs-lisp-docstring-fill-column t))
         (funcall fun nil region)))))
 
-(defun ok-edit-insert-newline-above ()
-  "Insert a new line above current point."
-  (interactive)
-  (save-excursion
-    (back-to-indentation)
-    (newline-and-indent) ;; do we need `indent-accoring-to-mode'?
-    ))
-(make-obsolete #'ok-edit-insert-newline-above #'crux-smart-open-line-above "0.4.2")
-
-(defun ok-edit-insert-newline-below ()
-  "Insert a new line below current point."
-  (interactive)
-  (end-of-line)
-  (newline-and-indent))
-(make-obsolete #'ok-edit-insert-newline-below #'crux-smart-open-line "0.4.2")
-
 (defun ok-edit-insert-section-delimiter ()
   "Insert a section delimiter character (❬)."
   (interactive)
